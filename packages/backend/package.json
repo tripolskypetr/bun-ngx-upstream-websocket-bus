@@ -1,0 +1,23 @@
+{
+  "name": "@packages/backend",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "bun ./src/index.ts --bootstrap=8081,8082,8083,8084,8085",
+    "start:debug": "bun --inspect-brk ./src/index.ts --port=8081"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "di-kit": "1.0.14",
+    "di-scoped": "1.0.16",
+    "functools-kit": "1.0.77",
+    "hono": "4.7.5",
+    "pinolog": "1.0.4"
+  }
+}
