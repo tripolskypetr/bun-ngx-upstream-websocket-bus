@@ -3,7 +3,10 @@
     "private": true,
     "scripts": {
         "start": "npm run pm2:stop && npm run build && npm run pm2:start",
-        "start:nginx": "docker-compose up -d",
+        "start:bun": "docker-compose -f ./docker-compose.bun.yaml up -d",
+        "start:nginx": "docker-compose -f ./docker-compose.nginx.yaml up -d",
+        "stop:bun": "docker-compose -f ./docker-compose.bun.yaml down",
+        "stop:nginx": "docker-compose -f ./docker-compose.nginx.yaml down",
         "pm2:start": "pm2 start ./config/ecosystem.config.js",
         "pm2:stop": "pm2 kill",
         "build": "npm run build:packages",
