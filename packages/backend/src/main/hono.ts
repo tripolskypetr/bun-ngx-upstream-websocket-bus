@@ -16,7 +16,9 @@ if (port) {
     development: false,
   });
   ioc.bootstrapService.listen(({ topic, data }) => {
-    console.log("Publishing", { topic, data });
-    server.publish(topic, JSON.stringify(data));
+    if (server.subscriberCount(topic)) {
+      console.log("Publishing", { topic, data });
+      server.publish(topic, JSON.stringify(data));
+    }
   });
 }

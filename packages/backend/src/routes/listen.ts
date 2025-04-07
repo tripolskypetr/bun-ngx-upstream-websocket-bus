@@ -12,6 +12,10 @@ app.get(
         bunWs.subscribe("broadcast");
         ws.send(JSON.stringify({ port }))
       },
+      onClose: (_, ws) => {
+        const bunWs = ws.raw!;
+        bunWs.unsubscribe("broadcast");
+      },
     };
   })
 );

@@ -12,7 +12,7 @@ interface IBroadcastMessage<T extends object = object> {
 }
 
 const BROADCAST_CHANNEL = "broadcast-channel";
-const BROADCAST_RESTART_DELAY = 250;
+const BROADCAST_REPEAT_DELAY = 250;
 
 export class BootstrapService {
   private readonly loggerService = inject<LoggerService>(TYPES.loggerService);
@@ -51,12 +51,12 @@ export class BootstrapService {
           proc.send(message);
         }
         if (killedPorts.length) {
-          await sleep(BROADCAST_RESTART_DELAY);
+          await sleep(BROADCAST_REPEAT_DELAY);
           for (const port of killedPorts) {
             const proc = this._childProcMap.get(port)!;
             if (proc.killed) {
               throw new Error(
-                `bootstrapService broadcast process has not been restarted after ${BROADCAST_RESTART_DELAY}ms port=${port}`
+                `bootstrapService ipc process has not been restarted after ${BROADCAST_REPEAT_DELAY}ms port=${port}`
               );
             }
             proc.send(message);
@@ -120,12 +120,12 @@ export class BootstrapService {
       proc.send(message);
     }
     if (killedPorts.length) {
-      await sleep(BROADCAST_RESTART_DELAY);
+      await sleep(BROADCAST_REPEAT_DELAY);
       for (const port of killedPorts) {
         const proc = this._childProcMap.get(port)!;
         if (proc.killed) {
           throw new Error(
-            `bootstrapService broadcast process has not been restarted after ${BROADCAST_RESTART_DELAY}ms port=${port}`
+            `bootstrapService broadcast process has not been restarted after ${BROADCAST_REPEAT_DELAY}ms port=${port}`
           );
         }
         proc.send(message);
