@@ -11,6 +11,7 @@ function App() {
   useEffect(() => {
     const socket = new WebSocket("/api/v1/listen");
     socket.onmessage = (event) => {
+      console.timeEnd("Notify");
       setText((prev) => `${prev}\n\n${event.data}`);
     };
     socket.onclose = () => {
@@ -31,6 +32,8 @@ function App() {
   };
 
   const handleNotify = async (withAlert = true) => {
+    
+    console.time("Notify");
     await fetch("/api/v1/notify", {
       method: "POST",
       headers: {
@@ -41,7 +44,7 @@ function App() {
         requestId: uuid(),
       }),
     });
-    withAlert && alert("ok");
+    !withAlert && alert("ok");
   };
 
   const handleKill = async (withAlert = true) => {
