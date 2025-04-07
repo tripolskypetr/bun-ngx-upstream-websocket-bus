@@ -13,6 +13,9 @@ function App() {
     socket.onmessage = (event) => {
       setText((prev) => `${prev}\n\n${event.data}`);
     };
+    socket.onclose = () => {
+      window.location.reload();
+    };
   }, []);
 
   const handleStress = async () => {
