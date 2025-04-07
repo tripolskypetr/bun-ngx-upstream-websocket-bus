@@ -4,6 +4,7 @@ import { app, websocket } from "../config/app";
 import "../routes/listen";
 import "../routes/notify";
 import "../routes/kill";
+import "../routes/health";
 
 const { port } = ioc.bootstrapService.getArgs();
 
