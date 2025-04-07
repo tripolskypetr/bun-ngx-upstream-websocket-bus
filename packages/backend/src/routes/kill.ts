@@ -10,6 +10,6 @@ app.post("/api/v1/kill", async (ctx) => {
   const result = { status: "ok", port };
   setTimeout(() => {
     throw new Error(`Kill endpoint called for port=${port}`);
-  }, 3_000);
+  }, 10);
   return ctx.json(result, 200);
 });

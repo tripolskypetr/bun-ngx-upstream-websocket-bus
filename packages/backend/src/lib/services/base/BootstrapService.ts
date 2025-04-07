@@ -3,6 +3,7 @@ import { parseArgs } from "util";
 import { inject } from "../../core/di";
 import LoggerService from "./LoggerService";
 import TYPES from "../../core/types";
+import { sleep } from "bun";
 
 interface IBroadcastMessage<T extends object = object> {
   type: typeof BROADCAST_CHANNEL;
@@ -11,6 +12,7 @@ interface IBroadcastMessage<T extends object = object> {
 }
 
 const BROADCAST_CHANNEL = "broadcast-channel";
+const BROADCAST_RESTART_DELAY = 250;
 
 export class BootstrapService {
   private readonly loggerService = inject<LoggerService>(TYPES.loggerService);
@@ -26,7 +28,7 @@ export class BootstrapService {
       killSignal: "SIGKILL",
       windowsHide: true,
       stdio: ["inherit", "inherit", "inherit"],
-      ipc: (message, childProc) => {
+      ipc: async (message, childProc) => {
         if (message.type !== BROADCAST_CHANNEL) {
           return;
         }
@@ -34,11 +36,31 @@ export class BootstrapService {
           `bootstrapService ipc recieved message port=${port}`,
           { port, message }
         );
-        for (const proc of this._childProcMap.values()) {
+        const killedPorts: number[] = [];
+        for (const [port, proc] of this._childProcMap) {
           if (proc.pid === childProc.pid) {
             continue;
           }
+          if (proc.killed) {
+            this.loggerService.log(
+              `bootstrapService ipc emit error process exited port=${port}`,
+              { port, message }
+            );
+            continue;
+          }
           proc.send(message);
+        }
+        if (killedPorts.length) {
+          await sleep(BROADCAST_RESTART_DELAY);
+          for (const port of killedPorts) {
+            const proc = this._childProcMap.get(port)!;
+            if (proc.killed) {
+              throw new Error(
+                `bootstrapService broadcast process has not been restarted after ${BROADCAST_RESTART_DELAY}ms port=${port}`
+              );
+            }
+            proc.send(message);
+          }
         }
       },
       onExit: () => {
@@ -85,17 +107,33 @@ export class BootstrapService {
       topic,
       data,
     };
+    const killedPorts: number[] = [];
     for (const [port, proc] of this._childProcMap) {
       if (proc.killed) {
         this.loggerService.log(
           `bootstrapService broadcast error process exited port=${port}`,
           { port, topic, data }
         );
+        killedPorts.push(port);
         continue;
       }
       proc.send(message);
     }
-    process.send && process.send(message);
+    if (killedPorts.length) {
+      await sleep(BROADCAST_RESTART_DELAY);
+      for (const port of killedPorts) {
+        const proc = this._childProcMap.get(port)!;
+        if (proc.killed) {
+          throw new Error(
+            `bootstrapService broadcast process has not been restarted after ${BROADCAST_RESTART_DELAY}ms port=${port}`
+          );
+        }
+        proc.send(message);
+      }
+    }
+    if (!this._childProcMap.size) {
+      process.send && process.send(message);
+    }
   };
 
   public listen = <T extends object = object>(
