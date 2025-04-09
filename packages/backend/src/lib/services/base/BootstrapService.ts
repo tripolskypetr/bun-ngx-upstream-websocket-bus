@@ -134,6 +134,7 @@ export class BootstrapService {
     if (!this._childProcMap.size) {
       process.send && process.send(message);
     }
+    await this._messageSubject.next(message);
   };
 
   public listen = <T extends object = object>(
